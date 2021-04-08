@@ -8,9 +8,9 @@ JWT_SECRET = config("secret")
 JWT_ALGORITHM = config("algorithm")
 
 
-def signJWT(user_id: str) -> Dict[str, str]:
+def signJWT(user_email: str) -> Dict[str, str]:
     payload = {
-        "user_id": user_id
+        "user_email": user_email
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token

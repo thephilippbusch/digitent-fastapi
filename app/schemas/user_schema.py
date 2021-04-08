@@ -8,9 +8,9 @@ class UserSchema(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "email": "user@mail.com",
-                "password": "some password",
-                "username": "some username"
+                "email": "john@doe.com",
+                "password": "secure password",
+                "username": "John Doe"
             }
         }
 
@@ -22,18 +22,20 @@ class UserLoginSchema(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "email": "user@mail.com",
-                "password": "some password"
+                "email": "john@doe.com",
+                "password": "secure password"
             }
         }
 
 
-class UserIDModel(BaseModel):
-    id: str = Field(...)
+class AddAdminSchema(BaseModel):
+    admin_id: str = Field(...)
+    user_id: str = Field(...)
 
     class Config:
         schema_extra = {
             "example": {
-                "id": "some id"
+                "admin_id": "ADMIN ID",
+                "user_id": "USER ID"
             }
         }
