@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket, Body, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 import time, uuid
+from app.connection_handler import ConnectionHandler
 
 from .schemas.user_schema import UserSchema, UserLoginSchema, AddAdminSchema
 from .schemas.message_schema import MessageSchema
@@ -16,12 +17,13 @@ from .postgres.pgql_chatbot_answers import ChatbotAnswerManager
 from .postgres.pgql_chat import ChatManager
 
 app = FastAPI()
+handler = ConnectionHandler()
 
 origins = [
     'localhost:3000',
     'http://localhost:3000',
-    'praxi-chatbot-react.heroku.app',
-    'https://praxi-chatbot-react.heroku.app'
+    'praxi-chatbot-react.herokuapp.com',
+    'https://praxi-chatbot-react.herokuapp.com'
 ]
 
 app.add_middleware(
@@ -363,17 +365,15 @@ async def create_new_chat(chat: ChatSchema = Body(...)):
 @app.websocket("/ws/{channel}")
 async def chat(ws: WebSocket, channel: str):
     try:
-        await ws.accept()
+        await handler.connect(ws, channel)
         
         while True:
-            data = await ws.receive_text()
-            print(data)
-            print(channel)
+            data = await ws.receive_json()
             if data:
-                await ws.send_json({
-                    "message": data,
-                    "from": "user"
-                })
+                await handler.send_to_room({
+                    "message": data["message"],
+                    "from": data["user"]
+                }, channel)
             
     except Exception as e:
         print(e)
@@ -383,16 +383,20 @@ async def chat(ws: WebSocket, channel: str):
 async def praxi_chat(ws: WebSocket, channel: str):
     try:
         await ws.accept()
+        await ws.send_json({
+            "message": "Hi, ich bin Praxi! Dein Persönlicher Assistent für deine Praxisphase. Wie kann ich dir helfen?",
+            "from": "bot"
+        })
         
         while True:
-            data = await ws.receive_text()
+            data = await ws.receive_json()
             print(data)
             if data:
                 await ws.send_json({
-                    "message": data,
-                    "from": "user"
+                    "message": data["message"],
+                    "from": data["user"]
                 })
-            answer = ChatbotAnswerManager.get_answer_by_trigger(data)
+            answer = ChatbotAnswerManager.get_answer_by_trigger(data["message"])
             time.sleep(1)
             if answer:
                 if 'responses' in answer:

@@ -1,17 +1,18 @@
 import psycopg2, psycopg2.extras
 from decouple import config
 import uuid
-import os
 
-# HOST = config("postgres_host")
-# PORT = config("postgres_port")
-# DB = config("postgres_database")
-# USER = config("postgres_user")
+HOST = config("postgres_host")
+PORT = config("postgres_port")
+DB = config("postgres_database")
+USER = config("postgres_user")
 
-DATABASE_URL = os.environ['DATABASE_URL']
-
-conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-
+conn = psycopg2.connect(
+    host=HOST,
+    port=PORT,
+    database=DB,
+    user=USER
+)
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 init_commands = (
